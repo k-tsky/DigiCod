@@ -84,3 +84,68 @@ def add_vectors_Z2(vectors):
             result[i] = (result[i] + vector[i]) % 2  # Addition in Z2
 
     return result
+
+#Erweiterungskörper (elemente die durch polynom erzeugt werden können)
+#Input: [1, 0, 0, 1, 1] -> x^4 + x + 1
+#Output: Aufkettung von den Elementen
+def generate_field_elements(primitive_polynomial):
+    # Startwert a^0 = 1
+    current = [1]  # a^0 = 1
+    seen = []
+
+    for _ in range(15):  # Zykluslänge in GF(2^4)
+        # Pad auf 4 Bits für Anzeige
+        current_padded = [0] * (4 - len(current)) + current
+        seen.append(current_padded)
+
+        # Multiplizieren mit x: Linksshift um 1
+        next_poly = current + [0]
+
+        # Reduktion modulo primitiver Polynom falls Grad ≥ 4
+        if len(next_poly) > 4:
+            _, reduced = divide_polynomials_Z2(next_poly, primitive_polynomial)
+        else:
+            reduced = next_poly
+
+        current = reduced
+
+    print("Zykluslänge: " + str(len(seen)))
+    return [''.join(map(str, elem)).zfill(4) for elem in seen]
+
+#Reduzible Polynome
+#Input: [1, 1, 0] -> x² + x
+#Output: true/false
+def is_reducible_Z2(poly):
+    degree = len(poly) - 1
+
+    # Reduzierbarkeit bei Grad < 2 nicht sinnvoll
+    if degree < 2:
+        return False
+
+    # Erzeuge alle Polynome geringeren Grades
+    for i in range(1, degree):
+        # Erzeuge alle Polynome vom Grad i
+        for a in range(1, 2**(i+1)):
+            factor1 = [int(b) for b in bin(a)[2:].zfill(i+1)]
+            if factor1[0] == 0:
+                continue  # Führende 0 => nicht gültig
+
+            # Polynome vom Grad (degree - i)
+            for b in range(1, 2**(degree - i + 1)):
+                factor2 = [int(c) for c in bin(b)[2:].zfill(degree - i + 1)]
+                if factor2[0] == 0:
+                    continue  # Führende 0 => nicht gültig
+
+                product = multiply_polynomials_Z2(factor1, factor2)
+
+                # Kürzen führender Nullen im Ergebnis
+                while product and product[0] == 0:
+                    product.pop(0)
+
+                if product == poly:
+                    return True
+
+    return False
+
+
+

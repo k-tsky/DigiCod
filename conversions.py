@@ -1,3 +1,6 @@
+#Vorlesung/Übung 3 & 4 (Festkomma- und Gleitkommazahlen, Gruppe, Ring und Körper)
+#
+#
 #Division von Binärzahlen
 #Input: gf2_div([1, 0, 0, 0, 1], [1, 0, 1])
 #Output: Quotient, Rest
@@ -19,7 +22,7 @@ def gf2_div(dividend, divisor):
     return quotient, dividend
 
 #Berechnungen in Z_2
-#Erklärung Notation: u⁴ + u² + u + 1 → [1, 0, 1, 1, 1]#
+#Erklärung Notation: u⁴ + u² + u + 1 → [1, 0, 1, 1, 1]
 
 #Polynom-Addition in Z_2
 #Input: add_polynomials_Z2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])

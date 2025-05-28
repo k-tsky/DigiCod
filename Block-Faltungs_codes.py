@@ -147,3 +147,26 @@ def run_crc_code(generator_base_poly):
     print("\nBeispiele gültiger Codewörter (nur die ersten 6):")
     for word in codewords[:]:
         print(''.join(str(bit) for bit in word))
+
+#Faltungscodes
+#Beispielaufruf gsm_faltungscode_info([1, 1, 0], [1, 1, 1], 185) 1 + x^3 + x^4 => [1, 0, 0, 1, 1]
+
+def gsm_faltungscode_info(g1, g2, input_bits_length):
+    # Generatorpolynome in Binärform z.B. [1,0,0,1,1] für 1 + x^3 + x^4
+    # input_bits_length: Anzahl Informationsbits (z. B. 185)
+
+    # Encodergedächtnis ist Grad des Generatorpolynoms (alle Generatoren gleich lang)
+    m = max(len(g1), len(g2)) - 1
+    tailbits = m
+
+    total_input_bits = input_bits_length + tailbits
+    total_output_bits = 2 * total_input_bits  # Rauskommen zwei Bits pro Schritt
+    code_rate = round(input_bits_length / total_output_bits, 3)
+
+    print("Generatorpolynom g1(x):", g1)
+    print("Generatorpolynom g2(x):", g2)
+    print("Encodergedächtnis (m):", m)
+    print("Anzahl Tailbits:", tailbits)
+    print("Länge der codierten Nachricht (inkl. Tailbits):", total_input_bits)
+    print("Gesendete Bits:", total_output_bits)
+    print("Block-Coderate R =", input_bits_length, "/ (2 *", total_input_bits, ") =", code_rate)

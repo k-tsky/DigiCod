@@ -150,5 +150,110 @@ def is_reducible_Z2(poly):
 
     return False
 
+#Darstellung negativer Zahlen (bin)
+#Input: convert_binary("11111")
+#Output: Betrag, Betrag mit Vorzeichen, Exzess-4, b-1 (1erKompl.), b (2erKompl.)
+def convert_binary(bin_input):
+    bin_str = bin_input
+
+    # Betrag (unsigned)
+    value_unsigned = int(bin_str, 2)
+
+    # Betrag mit Vorzeichen (signed magnitude)
+    sign = '-' if bin_str[0] == '1' else '+'
+    magnitude = int(bin_str[1:], 2)
+    value_signed_magnitude = f"{sign}{magnitude}"
+
+    # Exzess-4
+    value_excess_4 = value_unsigned - 4
+
+    # 1er-Komplement
+    if bin_str[0] == '0':
+        ones_complement = value_unsigned
+    else:
+        flipped = ''.join('1' if b == '0' else '0' for b in bin_str)
+        ones_complement = -int(flipped, 2)
+
+    # 2er-Komplement
+    if bin_str[0] == '0':
+        twos_complement = value_unsigned
+    else:
+        twos_complement = value_unsigned - 8  # for 3-bit two's complement
+
+    print("Ausgabe:")
+    print(f"  Binär:                {bin_str}")
+    print(f"  Betrag (unsigned):    {value_unsigned}")
+    print(f"  Vorzeichen-Betrag:    {value_signed_magnitude}")
+    print(f"  Exzess-4:             {value_excess_4}")
+    print(f"  1er-Komplement:       {ones_complement}")
+    print(f"  2er-Komplement:       {twos_complement}")
+
+    return {
+        "Binär": bin_str,
+        "Betrag": value_unsigned,
+        "Betrag mit Vorzeichen": value_signed_magnitude,
+        "Exzess-4": value_excess_4,
+        "1er-Komplement": ones_complement,
+        "2er-Komplement": twos_complement,
+    }
+
+#Berechnung der Rechenoperationen
+#Input: addiere_neuner_komplement(-2, 1)
+#       addiere_zehner_komplement(-2, 1)
+#Output:
+def neuner_komplement(n):
+    n_str = str(n)
+    return int(''.join(str(9 - int(c)) for c in n_str))
+
+def addiere_neuner_komplement(a, b):
+    stellen = max(len(str(abs(a))), len(str(b)))
+    a_str = str(abs(a)).zfill(stellen)
+    b_str = str(b).zfill(stellen)
+
+    a_komp = neuner_komplement(a_str)
+    summe = a_komp + int(b_str)
+
+    if summe > 10**stellen - 1:
+        result = (summe + 1) - 10**stellen  # End-Around Carry
+    else:
+        result = -(neuner_komplement(str(summe).zfill(stellen)))  # negatives Ergebnis ohne Übertrag
+
+    print("(b-1)-Komplement (9er-Komplement):")
+    print(f"  9er-Komplement von {a_str} = {str(a_komp).zfill(stellen)}")
+    print(f"  {a_komp} + {b_str} = {summe}")
+    print(f"  Ergebnis = {result}\n")
+    return result
+
+def addiere_zehner_komplement(a, b):
+    stellen = max(len(str(abs(a))), len(str(b)))
+    a_str = str(abs(a)).zfill(stellen)
+    b_str = str(b).zfill(stellen)
+
+    a_komp = neuner_komplement(a_str) + 1  # 10er-Komplement
+    summe = a_komp + int(b_str)
+    result = summe - 10**stellen  # Überlauf abschneiden
+
+    print("b-Komplement (10er-Komplement):")
+    print(f"  10er-Komplement von {a_str} = {str(a_komp).zfill(stellen)}")
+    print(f"  {a_komp} + {b_str} = {summe}")
+    print(f"  Ergebnis = {result}\n")
+    return result
+
+#Exzess darstellung
+#Input: dezimal_zu_exzess(34, 2)
+#       exzess_zu_dezimal("11111111", 2)
+def dezimal_zu_exzess(dezimalwert, exzess_basis, wortlaenge=8):
+    exzess_wert = dezimalwert + exzess_basis
+    bin_str = format(exzess_wert, f'0{wortlaenge}b')
+    print(f"Dezimal: {dezimalwert}, Exzess-{exzess_basis}, Binär: {bin_str}")
+    return bin_str
+
+def exzess_zu_dezimal(bin_str, exzess_basis):
+    dezimalwert = int(bin_str, 2) - exzess_basis
+    print(f"Binär: {bin_str}, Exzess-{exzess_basis}, Dezimal: {dezimalwert}")
+    return dezimalwert
+
+
+
 
 

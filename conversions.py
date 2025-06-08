@@ -2,12 +2,12 @@
 #
 #
 #Division von Binärzahlen
-#Input: gf2_div([1, 0, 0, 0, 1], [1, 0, 1])
+#Input: div([1, 0, 0, 0, 1], [1, 0, 1])
 #Output: Quotient, Rest
 
-def gf2_div(dividend, divisor):
-    dividend = dividend.copy()
-    divisor = divisor.copy()
+def div(dividend, divisor):
+    dividend = list(dividend)
+    divisor = list(divisor)
     quotient = []
 
     while len(dividend) >= len(divisor):
@@ -25,123 +25,106 @@ def gf2_div(dividend, divisor):
 #Erklärung Notation: u⁴ + u² + u + 1 → [1, 0, 1, 1, 1]
 
 #Polynom-Addition in Z_2
-#Input: add_polynomials_Z2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
+#Input: ad2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
 #Output: [1, 1, 1, 0, 0] d.h Codewort: 11100
 
-def add_polynomials_Z2(poly1, poly2):
-    # Maximalgrad beider Polynome bestimmen
+def ad2(poly1, poly2):
     max_degree = max(len(poly1), len(poly2))
-
-    # Beide Polynome auf gleiche Länge bringen
     poly1 = [0] * (max_degree - len(poly1)) + poly1
     poly2 = [0] * (max_degree - len(poly2)) + poly2
-
-    # Addition in Z2 (XOR)
     result = [(a + b) % 2 for a, b in zip(poly1, poly2)]
     return result
 
 #Polynom-Multiplikation in Z_2
-#Input: multiply_polynomials_Z2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
+#Input: mu2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
 #Output: [1, 1, 1, 0, 0] d.h Codewort: 11100
 
-def multiply_polynomials_Z2(poly1, poly2):
-    result_degree = len(poly1) + len(poly2) - 2  # Maximaler Grad des Produkts
+def mu2(poly1, poly2):
+    result_degree = len(poly1) + len(poly2) - 2
     result = [0] * (result_degree + 1)
-
-    # Polynom-Multiplikation mit Modulo 2
     for i in range(len(poly1)):
         for j in range(len(poly2)):
-            result[i + j] ^= (poly1[i] * poly2[j])  # XOR entspricht + in Z2
-
+            result[i + j] ^= (poly1[i] * poly2[j])
     return result
 
-#Polynom-Division in Z_2
-#Input: divide_polynomials_Z2([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
+#Polynom-Division in Z_2 (long division)
+#Input: divl([1, 0, 0, 0, 1], [0, 1, 0, 1, 1])
 #Output: Quotient, Rest
-def divide_polynomials_Z2(dividend, divisor):
-    dividend = dividend[:]  # Kopie, um Original nicht zu verändern
+def divl(dividend, divisor):
+    dividend = list(dividend)
     divisor_degree = len(divisor) - 1
     quotient = [0] * (len(dividend) - divisor_degree)
 
     for i in range(len(quotient)):
         if dividend[i] == 1:
             quotient[i] = 1
-            # XOR den Divisor mit entsprechendem Versatz
             for j in range(len(divisor)):
                 dividend[i + j] ^= divisor[j]
 
-    # Rest ist das, was nach der Division im Dividend übrig bleibt
     remainder = dividend[-divisor_degree:]
     return quotient, remainder
 
 #Vektoraddition in Z_2
-#Input: [[1, 1, 0], [0, 0, 1], [1, 1, 1], [1, 0, 1], [0, 0, 1]]
+#Input: addv([[1, 1, 0], [0, 0, 1], [1, 1, 1], [1, 0, 1], [0, 0, 1]])
 #Output: [1, 0, 0]
 
-def add_vectors_Z2(vectors):
-    # Annahme: alle Vektoren haben die gleiche Länge
+def addv(vectors):
     result = [0] * len(vectors[0])
-
     for vector in vectors:
         for i in range(len(vector)):
-            result[i] = (result[i] + vector[i]) % 2  # Addition in Z2
-
+            result[i] = (result[i] + vector[i]) % 2
     return result
 
 #Erweiterungskörper (elemente die durch polynom erzeugt werden können)
-#Input: [1, 0, 0, 1, 1] -> x^4 + x + 1
+#Input: gfe([1, 0, 0, 1, 1]) -> x^4 + x + 1
 #Output: Aufkettung von den Elementen
-def generate_field_elements(primitive_polynomial):
-    # Startwert a^0 = 1
-    current = [1]  # a^0 = 1
+def gfe(primitive_polynomial):
+    current = [1]
     seen = []
 
-    for _ in range(15):  # Zykluslänge in GF(2^4)
-        # Pad auf 4 Bits für Anzeige
+    for _ in range(15):
         current_padded = [0] * (4 - len(current)) + current
         seen.append(current_padded)
-
-        # Multiplizieren mit x: Linksshift um 1
         next_poly = current + [0]
-
-        # Reduktion modulo primitiver Polynom falls Grad ≥ 4
         if len(next_poly) > 4:
-            _, reduced = divide_polynomials_Z2(next_poly, primitive_polynomial)
+            _, reduced = divl(next_poly, primitive_polynomial)
         else:
             reduced = next_poly
-
         current = reduced
 
     print("Zykluslänge: " + str(len(seen)))
-    return [''.join(map(str, elem)).zfill(4) for elem in seen]
+    result = []
+    for elem in seen:
+        elem_str = ''.join([str(d) for d in elem])
+        while len(elem_str) < 4:
+            elem_str = '0' + elem_str
+        result.append(elem_str)
+    return result
 
 #Reduzible Polynome
-#Input: [1, 1, 0] -> x² + x
+#Input: isr([1, 1, 0]) -> x² + x
 #Output: true/false
-def is_reducible_Z2(poly):
+def isr(poly):
     degree = len(poly) - 1
-
-    # Reduzierbarkeit bei Grad < 2 nicht sinnvoll
     if degree < 2:
         return False
 
-    # Erzeuge alle Polynome geringeren Grades
     for i in range(1, degree):
-        # Erzeuge alle Polynome vom Grad i
         for a in range(1, 2**(i+1)):
-            factor1 = [int(b) for b in bin(a)[2:].zfill(i+1)]
+            bin_a = bin(a)[2:]
+            bin_a = '0' * (i + 1 - len(bin_a)) + bin_a  # manual zfill
+            factor1 = [int(b) for b in bin_a]
             if factor1[0] == 0:
-                continue  # Führende 0 => nicht gültig
+                continue
 
-            # Polynome vom Grad (degree - i)
             for b in range(1, 2**(degree - i + 1)):
-                factor2 = [int(c) for c in bin(b)[2:].zfill(degree - i + 1)]
+                bin_b = bin(b)[2:]
+                bin_b = '0' * (degree - i + 1 - len(bin_b)) + bin_b  # manual zfill
+                factor2 = [int(c) for c in bin_b]
                 if factor2[0] == 0:
-                    continue  # Führende 0 => nicht gültig
+                    continue
 
-                product = multiply_polynomials_Z2(factor1, factor2)
-
-                # Kürzen führender Nullen im Ergebnis
+                product = mu2(factor1, factor2)  # use correct function
                 while product and product[0] == 0:
                     product.pop(0)
 
@@ -150,46 +133,32 @@ def is_reducible_Z2(poly):
 
     return False
 
+
 #Darstellung negativer Zahlen (bin)
-#Input: convert_binary("11111")
+#Input: cvb("11111")
 #Output: Betrag, Betrag mit Vorzeichen, Exzess-4, b-1 (1erKompl.), b (2erKompl.)
-def convert_binary(bin_input):
+def cvb(bin_input):
     bin_str = bin_input
-
-    # Betrag (unsigned)
     value_unsigned = int(bin_str, 2)
-
-    # Betrag mit Vorzeichen (signed magnitude)
     sign = '-' if bin_str[0] == '1' else '+'
     magnitude = int(bin_str[1:], 2)
-    value_signed_magnitude = f"{sign}{magnitude}"
-
-    # Exzess-4
+    value_signed_magnitude = sign + str(magnitude)
     value_excess_4 = value_unsigned - 4
-
-    # 1er-Komplement
     if bin_str[0] == '0':
         ones_complement = value_unsigned
     else:
-        flipped = ''.join('1' if b == '0' else '0' for b in bin_str)
+        flipped = ''.join(['1' if b == '0' else '0' for b in bin_str])
         ones_complement = -int(flipped, 2)
-
-    # 2er-Komplement
     if bin_str[0] == '0':
         twos_complement = value_unsigned
     else:
-        twos_complement = value_unsigned - 8  # for 3-bit two's complement
+        n_bits = len(bin_str)
+        twos_complement = value_unsigned - (1 << n_bits)
 
     print("Ausgabe:")
-    print(f"  Binär:                {bin_str}")
-    print(f"  Betrag (unsigned):    {value_unsigned}")
-    print(f"  Vorzeichen-Betrag:    {value_signed_magnitude}")
-    print(f"  Exzess-4:             {value_excess_4}")
-    print(f"  1er-Komplement:       {ones_complement}")
-    print(f"  2er-Komplement:       {twos_complement}")
 
     return {
-        "Binär": bin_str,
+        "Binaer": bin_str,
         "Betrag": value_unsigned,
         "Betrag mit Vorzeichen": value_signed_magnitude,
         "Exzess-4": value_excess_4,
@@ -197,60 +166,65 @@ def convert_binary(bin_input):
         "2er-Komplement": twos_complement,
     }
 
-#Berechnung der Rechenoperationen
-#Input: addiere_neuner_komplement(-2, 1)
-#       addiere_zehner_komplement(-2, 1)
+#Addition von Komplementen (dez)
+#Input: ank(-2, 1)
+#       azk(-2, 1)
 #Output:
-def neuner_komplement(n):
+def nk(n):
     n_str = str(n)
-    return int(''.join(str(9 - int(c)) for c in n_str))
+    return int(''.join([str(9 - int(c)) for c in n_str]))
 
-def addiere_neuner_komplement(a, b):
+def pad_left(s, total_length):
+    return '0' * (total_length - len(s)) + s
+
+def ank(a, b):
     stellen = max(len(str(abs(a))), len(str(b)))
-    a_str = str(abs(a)).zfill(stellen)
-    b_str = str(b).zfill(stellen)
+    a_str = pad_left(str(abs(a)), stellen)
+    b_str = pad_left(str(b), stellen)
 
-    a_komp = neuner_komplement(a_str)
+    a_komp = nk(a_str)
     summe = a_komp + int(b_str)
 
     if summe > 10**stellen - 1:
-        result = (summe + 1) - 10**stellen  # End-Around Carry
+        result = (summe + 1) - 10**stellen
     else:
-        result = -(neuner_komplement(str(summe).zfill(stellen)))  # negatives Ergebnis ohne Übertrag
+        result = -nk(pad_left(str(summe), stellen))
 
     print("(b-1)-Komplement (9er-Komplement):")
-    print(f"  9er-Komplement von {a_str} = {str(a_komp).zfill(stellen)}")
-    print(f"  {a_komp} + {b_str} = {summe}")
-    print(f"  Ergebnis = {result}\n")
+    print("  9er-Komplement von " + a_str + " = " + pad_left(str(a_komp), stellen))
+    print("  " + str(a_komp) + " + " + b_str + " = " + str(summe))
+    print("Ergebnis (Ueberlauf abgeschnitten) = ")
     return result
 
-def addiere_zehner_komplement(a, b):
+def azk(a, b):
     stellen = max(len(str(abs(a))), len(str(b)))
-    a_str = str(abs(a)).zfill(stellen)
-    b_str = str(b).zfill(stellen)
+    a_str = pad_left(str(abs(a)), stellen)
+    b_str = pad_left(str(b), stellen)
 
-    a_komp = neuner_komplement(a_str) + 1  # 10er-Komplement
+    a_komp = nk(a_str) + 1
     summe = a_komp + int(b_str)
-    result = summe - 10**stellen  # Überlauf abschneiden
+    result = summe - 10**stellen
 
     print("b-Komplement (10er-Komplement):")
-    print(f"  10er-Komplement von {a_str} = {str(a_komp).zfill(stellen)}")
-    print(f"  {a_komp} + {b_str} = {summe}")
-    print(f"  Ergebnis = {result}\n")
+    print("  10er-Komplement von " + a_str + " = " + pad_left(str(a_komp), stellen))
+    print("  " + str(a_komp) + " + " + b_str + " = " + str(summe))
+    print("Ergebnis (Ueberlauf abgeschnitten) = ")
     return result
 
 #Exzess darstellung
-#Input: dezimal_zu_exzess(34, 2)
-#       exzess_zu_dezimal("11111111", 2)
-def dezimal_zu_exzess(dezimalwert, exzess_basis, wortlaenge=8):
+#Input: de(34, 2)
+#       ed("11111111", 2)
+def de(dezimalwert, exzess_basis, wortlaenge=8):
     exzess_wert = dezimalwert + exzess_basis
-    bin_str = format(exzess_wert, f'0{wortlaenge}b')
-    print(f"Dezimal: {dezimalwert}, Exzess-{exzess_basis}, Binär: {bin_str}")
+    bin_str = bin(exzess_wert)[2:]
+    while len(bin_str) < wortlaenge:
+        bin_str = '0' + bin_str
+    print("Dezimal: " + str(dezimalwert) + ", Exzess-" + str(exzess_basis) + ", Binär: " + bin_str)
     return bin_str
 
-def exzess_zu_dezimal(bin_str, exzess_basis):
+def ed(bin_str, exzess_basis):
     dezimalwert = int(bin_str, 2) - exzess_basis
-    print(f"Binär: {bin_str}, Exzess-{exzess_basis}, Dezimal: {dezimalwert}")
+    print("Binär: " + bin_str + ", Exzess-" + str(exzess_basis) + ", Dezimal: " + str(dezimalwert))
     return dezimalwert
 
 

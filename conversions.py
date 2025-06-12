@@ -21,6 +21,60 @@ def div(dividend, divisor):
 
     return quotient, dividend
 
+#Addition von Binärzahlen
+#Input: bad("10111111", "11000011")
+def bad(bin1, bin2):
+    # Umwandlung der Binärstrings in Dezimalzahlen
+    dez1 = int(bin1, 2)
+    dez2 = int(bin2, 2)
+
+    # Addition der Dezimalzahlen
+    summe_dez = dez1 + dez2
+
+    # Rückumwandlung in Binärstring (ohne '0b'-Präfix)
+    summe_bin = bin(summe_dez)[2:]
+
+    print("Binär 1:", bin1)
+    print("Binär 2:", bin2)
+    print("Summe   :", summe_bin)
+
+    return summe_bin
+
+#Substraktion von Binärzahlen
+#Input: bs("1111", "1010")
+def bs(a_str, b_str):
+    # Gleiche Länge durch Auffüllen mit Nullen
+    max_len = max(len(a_str), len(b_str))
+    a_str = a_str.zfill(max_len)
+    b_str = b_str.zfill(max_len)
+
+    # 1. Invertieren (Einerkomplement)
+    b_invert = ''.join('1' if bit == '0' else '0' for bit in b_str)
+
+    # 2. Eins hinzufügen (Zweierkomplement)
+    def add_bin(bin1, bin2):
+        result = ''
+        carry = 0
+        for i in range(len(bin1) - 1, -1, -1):
+            total = int(bin1[i]) + int(bin2[i]) + carry
+            result = str(total % 2) + result
+            carry = total // 2
+        if carry:
+            result = '1' + result
+        return result
+
+    b_zweierkomplement = add_bin(b_invert, '1'.zfill(max_len))
+
+    # 3. Addition a + (-b)
+    ergebnis = add_bin(a_str, b_zweierkomplement)
+
+    # 4. Überlauf ignorieren
+    if len(ergebnis) > max_len:
+        ergebnis = ergebnis[1:]
+
+    # 5. Führende Nullen entfernen
+    return ergebnis.lstrip('0') or '0'
+
 #Berechnungen in Z_2
 #Erklärung Notation: u⁴ + u² + u + 1 → [1, 0, 1, 1, 1]
 
@@ -33,6 +87,7 @@ def ad2(poly1, poly2):
     poly1 = [0] * (max_degree - len(poly1)) + poly1
     poly2 = [0] * (max_degree - len(poly2)) + poly2
     result = [(a + b) % 2 for a, b in zip(poly1, poly2)]
+    print(result)
     return result
 
 #Polynom-Multiplikation in Z_2
@@ -78,27 +133,55 @@ def addv(vectors):
 #Erweiterungskörper (elemente die durch polynom erzeugt werden können)
 #Input: gfe([1, 0, 0, 1, 1]) -> x^4 + x + 1
 #Output: Aufkettung von den Elementen
+def divl(dividend, divisor):
+    dividend = dividend[:]
+    while len(dividend) >= len(divisor):
+        if dividend[0] == 1:
+            for i in range(len(divisor)):
+                dividend[i] ^= divisor[i]
+        dividend.pop(0)
+    return [], dividend
+
+def xor(p1, p2):
+    # XOR zweier gleichlanger Listen
+    return [(a ^ b) for a, b in zip(p1, p2)]
+
+def divl(dividend, divisor):
+    # Division modulo 2 (nur Rest liefern)
+    dividend = dividend[:]
+    while len(dividend) >= len(divisor):
+        if dividend[0] == 1:
+            for i in range(len(divisor)):
+                dividend[i] ^= divisor[i]
+        dividend.pop(0)
+    return [], dividend
+
 def gfe(primitive_polynomial):
-    current = [1]
+    degree = len(primitive_polynomial) - 1
+    current = [0] * (degree - 1) + [1]  # Startwert: a^0 = 1
     seen = []
 
-    for _ in range(15):
-        current_padded = [0] * (4 - len(current)) + current
-        seen.append(current_padded)
+    while current not in seen:
+        seen.append(current)
+
+        # Multiplizieren mit a = Linksshift + 0 anhängen
         next_poly = current + [0]
-        if len(next_poly) > 4:
+
+        # Falls Grad zu groß, modulo reduzieren
+        if len(next_poly) > degree:
             _, reduced = divl(next_poly, primitive_polynomial)
         else:
             reduced = next_poly
-        current = reduced
 
-    print("Zykluslänge: " + str(len(seen)))
+        # Auffüllen auf 'degree' Stellen
+        current = [0] * (degree - len(reduced)) + reduced
+
+    print("Zykluslänge:", len(seen))
     result = []
     for elem in seen:
-        elem_str = ''.join([str(d) for d in elem])
-        while len(elem_str) < 4:
-            elem_str = '0' + elem_str
-        result.append(elem_str)
+        bitstring = ''.join(str(x) for x in elem)
+        result.append(bitstring)
+        print(bitstring)
     return result
 
 #Reduzible Polynome
@@ -216,16 +299,34 @@ def azk(a, b):
 #       ed("11111111", 2)
 def de(dezimalwert, exzess_basis, wortlaenge=8):
     exzess_wert = dezimalwert + exzess_basis
+    if exzess_wert < 0 or exzess_wert >= 2**wortlaenge:
+        print("Fehler: Exzesswert liegt außerhalb des darstellbaren Bereichs.")
+        return None
+
     bin_str = bin(exzess_wert)[2:]
-    while len(bin_str) < wortlaenge:
-        bin_str = '0' + bin_str
-    print("Dezimal: " + str(dezimalwert) + ", Exzess-" + str(exzess_basis) + ", Binär: " + bin_str)
+    bin_str = bin_str.zfill(wortlaenge)
+
+    print("Dezimal:", dezimalwert,
+          "| Exzess-Basis:", exzess_basis,
+          "| Exzesswert:", exzess_wert,
+          "| Binär:", bin_str)
     return bin_str
 
 def ed(bin_str, exzess_basis):
     dezimalwert = int(bin_str, 2) - exzess_basis
     print("Binär: " + bin_str + ", Exzess-" + str(exzess_basis) + ", Dezimal: " + str(dezimalwert))
     return dezimalwert
+
+#Kleinste Fixkommazahl
+#Input: kfi(8, 2)
+def kfi(gesamt_bits=8, vorkomma_bits=2):
+    nachkomma_bits = gesamt_bits - vorkomma_bits
+    kleinste_zahl = 2 ** (-nachkomma_bits)
+    print("Gesamtbits:", gesamt_bits)
+    print("Vorkommabits:", vorkomma_bits)
+    print("Nachkommabits:", nachkomma_bits)
+    print("Kleinste darstellbare positive Zahl:", kleinste_zahl)
+    return kleinste_zahl
 
 
 

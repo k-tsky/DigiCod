@@ -141,8 +141,8 @@ def btk(p_x, p_y, kanalrate_kbps, blocksize_mbit):
     }
 
     print("P(Y|X):", result["P_Y_given_X"])
-    print("H(Y):", result["H_Y"])
-    print("H(Y|X):", result["H_Y_given_X"])
+    print("Ausgangsentropie H(Y):", result["H_Y"])
+    print("Irrelevanz H(Y|X):", result["H_Y_given_X"])
     print("Transinformation:", result["T"])
     print("Max. Rate (bit/s):", result["R_max_bit_s"])
     print("Zeit (s):", result["Übertragungszeit_s"])

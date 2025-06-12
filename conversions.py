@@ -22,7 +22,7 @@ def div(dividend, divisor):
     return quotient, dividend
 
 #Addition von Binärzahlen
-#Input: bad("10111111", "11000011")
+#Input: bad("111", "111")
 def bad(bin1, bin2):
     # Umwandlung der Binärstrings in Dezimalzahlen
     dez1 = int(bin1, 2)
@@ -38,18 +38,24 @@ def bad(bin1, bin2):
     print("Binär 2:", bin2)
     print("Summe   :", summe_bin)
 
-    return summe_bin
 
 #Substraktion von Binärzahlen
-#Input: bs("1111", "1010")
+#Input: bs("1101", "1101")
 def bs(a_str, b_str):
-    # Gleiche Länge durch Auffüllen mit Nullen
+    # Gleiche Länge durch manuelles Auffüllen mit führenden Nullen
     max_len = max(len(a_str), len(b_str))
-    a_str = a_str.zfill(max_len)
-    b_str = b_str.zfill(max_len)
+    while len(a_str) < max_len:
+        a_str = '0' + a_str
+    while len(b_str) < max_len:
+        b_str = '0' + b_str
 
     # 1. Invertieren (Einerkomplement)
-    b_invert = ''.join('1' if bit == '0' else '0' for bit in b_str)
+    b_invert = ''
+    for bit in b_str:
+        if bit == '0':
+            b_invert += '1'
+        else:
+            b_invert += '0'
 
     # 2. Eins hinzufügen (Zweierkomplement)
     def add_bin(bin1, bin2):
@@ -63,7 +69,13 @@ def bs(a_str, b_str):
             result = '1' + result
         return result
 
-    b_zweierkomplement = add_bin(b_invert, '1'.zfill(max_len))
+    # Manuelles Auffüllen der 1
+    bin_one = ''
+    while len(bin_one) < max_len - 1:
+        bin_one = '0' + bin_one
+    bin_one += '1'
+
+    b_zweierkomplement = add_bin(b_invert, bin_one)
 
     # 3. Addition a + (-b)
     ergebnis = add_bin(a_str, b_zweierkomplement)
@@ -73,7 +85,13 @@ def bs(a_str, b_str):
         ergebnis = ergebnis[1:]
 
     # 5. Führende Nullen entfernen
-    return ergebnis.lstrip('0') or '0'
+    i = 0
+    while i < len(ergebnis) and ergebnis[i] == '0':
+        i += 1
+    ergebnis = ergebnis[i:] if i < len(ergebnis) else '0'
+
+    return ergebnis
+
 
 #Berechnungen in Z_2
 #Erklärung Notation: u⁴ + u² + u + 1 → [1, 0, 1, 1, 1]
@@ -182,7 +200,6 @@ def gfe(primitive_polynomial):
         bitstring = ''.join(str(x) for x in elem)
         result.append(bitstring)
         print(bitstring)
-    return result
 
 #Reduzible Polynome
 #Input: isr([1, 1, 0]) -> x² + x
@@ -299,23 +316,25 @@ def azk(a, b):
 #       ed("11111111", 2)
 def de(dezimalwert, exzess_basis, wortlaenge=8):
     exzess_wert = dezimalwert + exzess_basis
-    if exzess_wert < 0 or exzess_wert >= 2**wortlaenge:
+    if exzess_wert < 0 or exzess_wert >= 2 ** wortlaenge:
         print("Fehler: Exzesswert liegt außerhalb des darstellbaren Bereichs.")
         return None
 
-    bin_str = bin(exzess_wert)[2:]
-    bin_str = bin_str.zfill(wortlaenge)
+    bin_str = bin(exzess_wert)[2:]  # Entfernt das '0b' Präfix
+
+    # Manuelles Auffüllen mit führenden Nullen
+    while len(bin_str) < wortlaenge:
+        bin_str = '0' + bin_str
 
     print("Dezimal:", dezimalwert,
           "| Exzess-Basis:", exzess_basis,
           "| Exzesswert:", exzess_wert,
           "| Binär:", bin_str)
-    return bin_str
+
 
 def ed(bin_str, exzess_basis):
     dezimalwert = int(bin_str, 2) - exzess_basis
     print("Binär: " + bin_str + ", Exzess-" + str(exzess_basis) + ", Dezimal: " + str(dezimalwert))
-    return dezimalwert
 
 #Kleinste Fixkommazahl
 #Input: kfi(8, 2)
@@ -326,9 +345,3 @@ def kfi(gesamt_bits=8, vorkomma_bits=2):
     print("Vorkommabits:", vorkomma_bits)
     print("Nachkommabits:", nachkomma_bits)
     print("Kleinste darstellbare positive Zahl:", kleinste_zahl)
-    return kleinste_zahl
-
-
-
-
-

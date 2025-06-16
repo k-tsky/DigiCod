@@ -3,45 +3,44 @@ import math
 #Kanalmatrix basic
 #Input: bk([[0.9, 0.1],[0.1, 0.9]], [0.3, 0.7], 1000)
 #Input: 1. Kanalmatrix, 2. Auftrittswahrscheinlichkeit, 3. Übertragungsrate (1kbit/s = 1000)
-def bk(P_Y_X, p_x, uebertragungsrate):
-    # 1) Entropie H(X)
-    H_X = 0
-    for i in range(2):
-        if p_x[i] > 0:
-            H_X -= p_x[i] * math.log(p_x[i]) / math.log(2)
-
-    # 2) Wahrscheinlichkeiten p(y1), p(y2)
-    p_y = [0, 0]
-    for j in range(2):
-        for i in range(2):
-            p_y[j] += p_x[i] * P_Y_X[i][j]
-
-    # 3) Entropie H(Y)
-    H_Y = 0
-    for j in range(2):
-        if p_y[j] > 0:
-            H_Y -= p_y[j] * math.log(p_y[j]) / math.log(2)
-
-    # 4) Bedingte Entropie H(Y|X)
+    # Berechnung der bedingten Entropie H(Y|X)
+def bhy(P_Y_given_X, p_x):
     H_Y_given_X = 0
-    for i in range(2):
-        for j in range(2):
-            p = P_Y_X[i][j]
+    for i in range(len(p_x)):
+        for j in range(len(P_Y_given_X[i])):
+            p = P_Y_given_X[i][j]
             if p > 0:
-                H_Y_given_X -= p_x[i] * p * math.log(p) / math.log(2)
+                H_Y_given_X -= p_x[i] * p * math.log(p, 2)
+    return H_Y_given_X
 
-    # 5) Transinformation
-    T = H_Y - H_Y_given_X
+# Berechnung der Transinformation T = H(Y) - H(Y|X)
+def bht(H_Y, H_Y_given_X):
+    return H_Y - H_Y_given_X
 
-    # 6) Maximale Symbolrate
+def bk(P_Y_X, p_x, uebertragungsrate):
+    # 1. Eingangs-Entropie H(X)
+    H_X = -sum(p * math.log(p, 2) for p in p_x if p > 0)
+
+    # 2. Wahrscheinlichkeiten p(y)
+    p_y = [sum(p_x[i] * P_Y_X[i][j] for i in range(2)) for j in range(2)]
+
+    # 3. Ausgangsentropie H(Y)
+    H_Y = -sum(p * math.log(p, 2) for p in p_y if p > 0)
+
+    # 4. Bedingte Entropie H(Y|X)
+    H_Y_given_X = bhy(P_Y_X, p_x)
+
+    # 5. Transinformation T
+    T = bht(H_Y, H_Y_given_X)
+
+    # 6. Maximale Symbolrate
     R_max = T * uebertragungsrate
 
-    # Ausgabe
-    print("H(X) =", round(H_X, 4), "bit/Zeichen")
-    print("H(Y) =", round(H_Y, 4), "bit/Zeichen")
-    print("H(Y|X) =", round(H_Y_given_X, 4), "bit/Zeichen")
-    print("T =", round(T, 4), "bit/Zeichen")
-    print("R_max =", round(R_max, 2), "bit/s")
+    print("Eingangs-Entropie H(X):", round(H_X, 4), "bit/Zeichen")
+    print("Ausgangs-Entropie H(Y):", round(H_Y, 4), "bit/Zeichen")
+    print("Irrelevanz H(Y|X):", round(H_Y_given_X, 4), "bit/Zeichen")
+    print("Transinformation T(X→Y):", round(T, 4), "bit/Zeichen")
+    print("Maximale Symbolrate R_max:", round(R_max, 2), "bit/s")
 
 #Entscheider und Fehlerwahrscheinlichkeit
 #Input: euf([[0.2, 0.5, 0.3], [0.7, 0.2, 0.1], [0.4, 0.0, 0.6]], [550, 1200, 3000])
@@ -85,7 +84,7 @@ def euf(P_Y_given_X, haeufigkeiten):
     print("P(Fehler):", resultat["p_fehler"])
 
 
-#Kanalmatrix bei gegebenen Wahrscheinlichkeiten
+#Kanalmatrix bei gegebenen Wahrscheinlichkeiten (Kanal Ein- und Ausgang)
 #Input: btk([0.3, 0.7], [0.34, 0.66], 140, 500)
 """
 p_x = [0.3, 0.7]
@@ -97,57 +96,39 @@ def btk(p_x, p_y, kanalrate_kbps, blocksize_mbit):
     px0, px1 = p_x
     py0, py1 = p_y
 
-    # LGS lösen (symbolisch hergeleitet)
+    # Symmetrische Kanalmatrix berechnen
     a = (py0 * px1 - py1 * px0) / (px1**2 - px0**2)
-    b = 1 - a  # da symmetrisch: a + b = 1
+    b = 1 - a
 
-    # 1. Kanalmatrix
     P_Y_given_X = [
-        [a, b],
-        [b, a]
+    [b, a],  # P(Y=0|X=0), P(Y=1|X=0)
+    [a, b]   # P(Y=0|X=1), P(Y=1|X=1)
     ]
 
-    # 2. Ausgangsentropie H(Y)
+    # Ausgangsentropie
     H_Y = -sum([p * math.log(p, 2) for p in p_y if p > 0])
 
-    # 3. Bedingte Entropie H(Y|X)
-    H_Y_given_X = 0
-    for i in range(len(p_x)):
-        for j in range(len(p_y)):
-            p_y_given_x = P_Y_given_X[i][j]
-            if p_y_given_x > 0:
-                H_Y_given_X += p_x[i] * p_y_given_x * math.log(p_y_given_x, 2)
-    H_Y_given_X = -H_Y_given_X
+    # Bedingte Entropie & Transinformation
+    H_Y_given_X = bhy(P_Y_given_X, p_x)
+    T = bht(H_Y, H_Y_given_X)
 
-    # 4. Transinformation
-    T = H_Y - H_Y_given_X
-
-    # 5. Maximale Übertragungsrate
-    R_max = T * kanalrate_kbps * 1000  # in bit/s
-
-    # 6. Minimale Zeit zur Übertragung
+    R_max = T * kanalrate_kbps * 1000
     L = blocksize_mbit * 1_000_000
     t = L / R_max
     t_h = t / 3600
 
-    result = {
-        "P_Y_given_X": P_Y_given_X,
-        "H_Y": H_Y,
-        "H_Y_given_X": H_Y_given_X,
-        "T": T,
-        "R_max_bit_s": R_max,
-        "Übertragungszeit_s": t,
-        "Übertragungszeit_h": t_h
-    }
+    print("Kanalmatrix P(Y|X):")
+    for row in P_Y_given_X:
+        print(" ", [round(p, 4) for p in row])
 
-    print("P(Y|X):", result["P_Y_given_X"])
-    print("Ausgangsentropie H(Y):", result["H_Y"])
-    print("Irrelevanz H(Y|X):", result["H_Y_given_X"])
-    print("Transinformation:", result["T"])
-    print("Max. Rate (bit/s):", result["R_max_bit_s"])
-    print("Zeit (s):", result["Übertragungszeit_s"])
-    print("Zeit (h):", result["Übertragungszeit_h"])
+    print("Ausgangsentropie H(Y):", H_Y)
+    print("Irrelevanz H(Y|X):", H_Y_given_X)
+    print("Transinformation:", T)
+    print("Max. Rate (bit/s):", R_max)
+    print("Zeit (s):", t)
+    print("Zeit (h):", t_h)
 
+btk([0.3, 0.7], [0.34, 0.66], 140, 500)
 
 
 

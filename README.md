@@ -18,7 +18,7 @@ File: conversions.py
 | Darstellung negativer Zahlen (bin) | cvb("11111") | Betrag, Betrag mit Vorzeichen, Exzess-4, b-1 (1erKompl.), b (2erKompl.) |
 | Komplement von Dezimalzahlen | 9er Komplement: nk(1234)10er: nk(1234) + 1 |  |
 | Addition von Komplementen (dez) | 9er: ank(-2, 1)10er: azk(-2, 1) |  |
-| Exzess Darstellung | 1. Zahl: Zahl2. Zahl: Exzess (Bias)3. Wortlänge (default=8)Dezimal zu Binär: de(34, 2, 4)Binär zu Dezimal: ed("11111111", 2)Achtung: Das Minus ist implizit, für Exzess--4 also -4eingeben |  |
+| Exzess Darstellung | 1. Zahl: Zahl2. Zahl: Exzess (Bias)3. Wortlänge (default=8)Dezimal zu Binär: de(34, 2, 4) Binär zu Dezimal: ed("11111111", 2)Achtung: Das Minus ist implizit, für Exzess--4 also -4eingeben |  |
 | Kleinste Festkommazahl | kfi(8, 2)Gesamt Bits: 8 (default=8)Vorkomma bits: 2 (default=2) |  |
 
 ## 1.2      Informationstheorie / Quellencodierung und Komprimierung (U7/U8)
@@ -51,3 +51,14 @@ File: Kanalmodell.py
 | Kanalmatrix basic berechnung | bk([[0.9, 0.1],[0.1, 0.9]], [0.3, 0.7], 1000)1. Kanalmatrix, 2. Auftrittswahrscheinlichkeit, 3. Übertragungsrate (1kbit/s = 1000) |  |
 | Entscheider und Fehlerwahrscheinlichkeit | euf([[0.2, 0.5, 0.3], [0.7, 0.2, 0.1], [0.4, 0.0, 0.6]], [550, 1200, 3000]) |  |
 | Kanalmatrix bei gegebenen Wahrscheinlichkeiten (Symmetrisch) | btk([0.3, 0.7], [0.34, 0.66], 140, 500)p_x = [0.3, 0.7]p_y = [0.34, 0.66]kanalrate_kbps = 140blocksize_mbit = 500 | IrrelevanzAusgangsentropieTransinformationP(Y|X) |
+| Berechnung der bedingten Entropie H(Y|X) | bhy(P_Y_given_X, p_x) |  |
+| Berechnung der Transinformation T = H(Y) - H(Y|X) | bht(H_Y, H_Y_given_X) |  |
+
+## 1.5      Wahrscheinlichkeit
+
+File: wahrscheinlichkeit.py
+
+| Thema | Funktion | Output |
+| --- | --- | --- |
+| Wahrscheinlichkeit ohne Beachtung der Reihenfolge und Rückweg | blk(49, 6) |  |
+| Bestimmte Anzahl richtige Erhalten | bkw(N=49, M=6, n=6, k=4) |  |
